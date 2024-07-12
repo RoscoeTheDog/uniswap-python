@@ -629,10 +629,11 @@ class Uniswap:
         """Convert ETH to tokens given an input amount."""
         if output_token == ETH_ADDRESS:
             raise ValueError
-
-        eth_balance = self.get_eth_balance()
-        if qty > eth_balance:
-            raise InsufficientBalance(eth_balance, qty)
+        
+        if not simulate:
+            eth_balance = self.get_eth_balance()
+            if qty > eth_balance:
+                raise InsufficientBalance(eth_balance, qty)
 
         if self.version == 1:
             token_funcs = self._exchange_contract(output_token).functions
@@ -753,10 +754,11 @@ class Uniswap:
         if input_token == ETH_ADDRESS:
             raise ValueError
 
-        # Balance check
-        input_balance = self.get_token_balance(input_token)
-        if qty > input_balance:
-            raise InsufficientBalance(input_balance, qty)
+        if not simulate:
+            # Balance check
+            input_balance = self.get_token_balance(input_token)
+            if qty > input_balance:
+                raise InsufficientBalance(input_balance, qty)
 
         if self.version == 1:
             token_funcs = self._exchange_contract(input_token).functions
@@ -876,9 +878,10 @@ class Uniswap:
     ) -> HexBytes:
         """Convert tokens to tokens given an input amount."""
         # Balance check
-        input_balance = self.get_token_balance(input_token)
-        if qty > input_balance:
-            raise InsufficientBalance(input_balance, qty)
+        if not simulate:
+            input_balance = self.get_token_balance(input_token)
+            if qty > input_balance:
+                raise InsufficientBalance(input_balance, qty)
 
         if recipient is None:
             recipient = self.address
