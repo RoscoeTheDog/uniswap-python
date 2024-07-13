@@ -1635,19 +1635,26 @@ class Uniswap:
     def _is_approved(self, token: AddressLike) -> bool:
         """Check to see if the exchange and token is approved."""
         _validate_address(token)
+
+        # Define the native token address (BNB in this case)
+        NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000'
+
+        if token == NATIVE_TOKEN_ADDRESS:
+            # No approval needed for native tokens like BNB
+            return True
+
         if self.version == 1:
             contract_addr = self._exchange_address_from_token(token)
         elif self.version in [2, 3]:
             contract_addr = self.router_address
+
         amount = (
             _load_contract_erc20(self.w3, token)
             .functions.allowance(self.address, contract_addr)
             .call()
         )
-        if amount >= self.max_approval_check_int:
-            return True
-        else:
-            return False
+
+        return amount >= self.max_approval_check_int
 
     # ------ Tx Utils ------------------------------------------------------------------
     def _deadline(self) -> int:

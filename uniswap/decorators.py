@@ -26,14 +26,16 @@ def check_approval(method: Callable[..., T]) -> Callable[..., T]:
     need to be approved."""
 
     @functools.wraps(method)
-    def approved(self: "Uniswap", *args: Union[AddressLike, int], **kwargs: AddressLike) -> T:
-        # Check to see if the first token is actually ETH
-        token: Optional[AddressLike] = args[0] if args and args[0] != ETH_ADDRESS else None  # type: ignore
-        token_two = None
+    def approved(self: "Uniswap", *args: Union[AddressLike, int], **kwargs) -> T:
+        # Check to see if the first token is actually ETH or present in kwargs
+        token: Optional[AddressLike] = (
+            args[0] if args and args[0] != ETH_ADDRESS else kwargs.get('input_token')
+        )
 
-        # Check the second token if needed
-        if method.__name__ == "make_trade" or method.__name__ == "make_trade_output":
-            token_two = args[1] if len(args) > 1 and args[1] != ETH_ADDRESS else None
+        # Check the second token if needed, from args or kwargs
+        token_two: Optional[AddressLike] = None
+        if method.__name__ in ["make_trade", "make_trade_output"]:
+            token_two = (args[1] if len(args) > 1 and args[1] != ETH_ADDRESS else kwargs.get('output_token'))
 
         # Approve both tokens if needed
         if token:
